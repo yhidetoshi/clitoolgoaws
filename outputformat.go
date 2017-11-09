@@ -1,4 +1,9 @@
-import clitoolgoaws
+package clitoolgoaws
+
+import (
+	"github.com/olekukonko/tablewriter"
+	"os"
+)
 
 func OutputFormat(data [][]string, resourceType string) {
 	table := tablewriter.NewWriter(os.Stdout)
