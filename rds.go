@@ -1,4 +1,4 @@
-package main
+package clitoolgoaws
 
 import (
 	"fmt"
@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/rds"
 	"github.com/olekukonko/tablewriter"
+	"github.com/yhidetoshi/clitoolgoaws"
 )
 
 const (
@@ -134,16 +135,3 @@ func GetRDSInstanceName(rdsClient *rds.RDS, rdsInstances string) *string {
 	return instanceName
 }
 
-
-// 出力のフォーマット(外部のモジュール利用)
-func OutputFormat(data [][]string, resourceType string) {
-	table := tablewriter.NewWriter(os.Stdout)
-	if resourceType == RDS {
-		table.SetHeader([]string{"DBName", "InstanceType", "Status", "Engine", "EngineVersion", "MasterUsername", "DBName", "AvailabilityZone"})
-	}
-
-	for _, value := range data {
-		table.Append(value)
-	}
-	table.Render()
-}
