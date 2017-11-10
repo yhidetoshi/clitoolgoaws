@@ -9,6 +9,7 @@ import (
 )
 
 var (
+<<<<<<< HEAD
 	argResource   = flag.String("resource", "", "select resource")
 	argProfile    = flag.String("profile", "", "slect profile.")
 	argRegion     = flag.String("region", "ap-northeast-1", "slect Region")
@@ -20,6 +21,19 @@ var (
 	argsTerminate = flag.Bool("terminate", false, "Instance terminate")
 	argRegister   = flag.Bool("register", false, "Register Instances to ELB")
 	argDeregister = flag.Bool("deregister", false, "Deregister Instances to ELB")
+=======
+	argResource    = flag.String("resource", "", "select resource")
+	argProfile     = flag.String("profile", "", "slect profile.")
+	argRegion      = flag.String("region", "ap-northeast-1", "slect Region")
+	argInstances   = flag.String("instances", "", " slect Instance ID or Instance Tag:Name or RDSinstanceName ")
+	argELBName     = flag.String("elbname", "", "input elbname")
+	argStop        = flag.Bool("stop", false, "Instance stop")
+	argStart       = flag.Bool("start", false, "Instance start")
+	argShow        = flag.Bool("show", false,"show ELB backendend Instances")
+	argsTerminate  = flag.Bool("terminate", false, "Instance terminate")
+	argRegister    = flag.Bool("register", false, "Register Instances to ELB")
+	argDeregister    = flag.Bool("deregister", false, "Deregister Instances to ELB")
+>>>>>>> 97b3cdcf4c969319ee0d0066803761f165059bae
 )
 
 func main() {
@@ -75,6 +89,7 @@ func main() {
 			elasticLoadbalancers = clitoolgoaws.GetELBInfo(elbClient, *argELBName) //ポインタ
 			if *argShow {
 				clitoolgoaws.ListELBBackendInstances(elbClient, elasticLoadbalancers, "show")
+<<<<<<< HEAD
 			} else if *argRegister && *argInstances != "" {
 				clitoolgoaws.ControlELB(elbClient, *argELBName, *argInstances, "register")
 				clitoolgoaws.ListELBBackendInstances(elbClient, elasticLoadbalancers, "show")
@@ -88,6 +103,19 @@ func main() {
 		} else {
 			clitoolgoaws.ListELB(elbClient, nil)
 		}
+=======
+				} else if *argRegister  && *argInstances != ""{
+					clitoolgoaws.ControlELB(elbClient, *argELBName, *argInstances, "register")
+		    	} else if *argDeregister  && *argInstances != ""{
+					clitoolgoaws.ControlELB(elbClient, *argELBName, *argInstances, "deregister")
+				} else {
+					fmt.Println("`-show` slect option")
+					os.Exit(1)
+				}
+		} else {
+				clitoolgoaws.ListELB(elbClient, nil)
+		       }
+>>>>>>> 97b3cdcf4c969319ee0d0066803761f165059bae
 	}
 }
 

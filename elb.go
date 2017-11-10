@@ -103,17 +103,28 @@ func ListELBBackendInstances(elbClient *elb.ELB, elbList []*string, operation st
 
 func RegisterELBInstances(elbClient *elb.ELB, ec2Instances string, elbList string) {
 	params := &elb.RegisterInstancesWithLoadBalancerInput{
+<<<<<<< HEAD
 		Instances: []*elb.Instance{
 			{
 				InstanceId: aws.String(ec2Instances),
 			},
+=======
+			Instances: []*elb.Instance{
+				{
+					InstanceId: aws.String(ec2Instances),
+				},
+>>>>>>> 97b3cdcf4c969319ee0d0066803761f165059bae
 		},
 		LoadBalancerName: aws.String(elbList),
 	}
 	_, err := elbClient.RegisterInstancesWithLoadBalancer(params)
 	if err != nil {
 		os.Exit(1)
+<<<<<<< HEAD
 	} else {
+=======
+	}else{
+>>>>>>> 97b3cdcf4c969319ee0d0066803761f165059bae
 		fmt.Println("Success...!")
 	}
 }
@@ -130,7 +141,11 @@ func DeregisterELBInstances(elbClient *elb.ELB, ec2Instances string, elbList str
 	_, err := elbClient.DeregisterInstancesFromLoadBalancer(params)
 	if err != nil {
 		os.Exit(1)
+<<<<<<< HEAD
 	} else {
+=======
+	}else{
+>>>>>>> 97b3cdcf4c969319ee0d0066803761f165059bae
 		fmt.Println("Success...!")
 
 	}
@@ -142,14 +157,24 @@ func ControlELB(elbClient *elb.ELB, elbList string, ec2Instances string, operati
 	var stdin string
 	fmt.Scan(&stdin)
 
+<<<<<<< HEAD
 	switch stdin {
 	case "y", "Y", "yes":
 		switch operation {
+=======
+	switch stdin{
+	case "y", "Y", "yes":
+		switch operation{
+>>>>>>> 97b3cdcf4c969319ee0d0066803761f165059bae
 		case "register":
 			fmt.Println("register instances to ELB")
 			RegisterELBInstances(elbClient, ec2Instances, elbList)
 		case "deregister":
+<<<<<<< HEAD
 			fmt.Println("deregister instances to ELB")
+=======
+		    fmt.Println("deregister instances to ELB")
+>>>>>>> 97b3cdcf4c969319ee0d0066803761f165059bae
 			DeregisterELBInstances(elbClient, ec2Instances, elbList)
 		}
 	case "n", "N", "no":
@@ -160,3 +185,8 @@ func ControlELB(elbClient *elb.ELB, elbList string, ec2Instances string, operati
 		os.Exit(0)
 	}
 }
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 97b3cdcf4c969319ee0d0066803761f165059bae
