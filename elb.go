@@ -101,3 +101,64 @@ func ListELBBackendInstances(elbClient *elb.ELB, elbList []*string, operation st
 	OutputFormat(allBackendInstances, ELB_INS)
 }
 
+<<<<<<< HEAD
+func RegisterELBInstances(elbClient *elb.ELB, ec2Instances string, elbList string) {
+	params := &elb.RegisterInstancesWithLoadBalancerInput{
+			Instances: []*elb.Instance{
+				{
+					InstanceId: aws.String(ec2Instances),
+				},
+		},
+		LoadBalancerName: aws.String(elbList),
+	}
+	_, err := elbClient.RegisterInstancesWithLoadBalancer(params)
+	if err != nil {
+		os.Exit(1)
+	}else{
+		fmt.Println("Success...!")
+	}
+}
+
+func DeregisterELBInstances(elbClient *elb.ELB, ec2Instances string, elbList string) {
+	params := &elb.DeregisterInstancesFromLoadBalancerInput{
+		Instances: []*elb.Instance{
+			{
+				InstanceId: aws.String(ec2Instances),
+			},
+		},
+		LoadBalancerName: aws.String(elbList),
+	}
+	_, err := elbClient.DeregisterInstancesFromLoadBalancer(params)
+	if err != nil {
+		os.Exit(1)
+	}else{
+		fmt.Println("Success...!")
+
+	}
+}
+
+func ControlELB(elbClient *elb.ELB, elbList string, ec2Instances string, operation string) {
+	//ListELBBackendInstances(elbClient, elbList)
+	fmt.Print("Do you control ELB ?")
+	var stdin string
+	fmt.Scan(&stdin)
+
+	switch stdin{
+	case "y", "Y", "yes":
+		switch operation{
+		case "register":
+			fmt.Println("register instances to ELB")
+			RegisterELBInstances(elbClient, ec2Instances, elbList)
+		case "deregister":
+		    fmt.Println("deregister instances to ELB")
+			DeregisterELBInstances(elbClient, ec2Instances, elbList)
+		}
+	case "n", "N", "no":
+		fmt.Println("Exit ...!")
+		os.Exit(0)
+	default:
+		fmt.Println("Exit ...!")
+		os.Exit(0)
+	}
+}
+
