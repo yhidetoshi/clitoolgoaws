@@ -14,11 +14,13 @@ var (
 	argProfile     = flag.String("profile", "", "slect profile.")
 	argRegion      = flag.String("region", "ap-northeast-1", "slect Region")
 	argInstances   = flag.String("instances", "", " slect Instance ID or Instance Tag:Name or RDSinstanceName ")
-	argELBName    = flag.String("elbname", "", "input elbname")
+	argELBName     = flag.String("elbname", "", "input elbname")
 	argStop        = flag.Bool("stop", false, "Instance stop")
 	argStart       = flag.Bool("start", false, "Instance start")
-	argShow         = flag.Bool("show", false,"show ELB backendend Instances")
+	argShow        = flag.Bool("show", false,"show ELB backendend Instances")
 	argsTerminate  = flag.Bool("terminate", false, "Instance terminate")
+	argRegister    = flag.Bool("register", false, "Register Instances to ELB")
+	argDeregister    = flag.Bool("deregister", false, "Deregister Instances to ELB")
 )
 
 func main() {
@@ -69,20 +71,22 @@ func main() {
 
 	// ELBのコマンド
 	var elasticLoadbalancers []*string
-	//var elbBackendInstances string
 	if *argResource == "elb" {
 		if *argELBName != "" {
 			elasticLoadbalancers = clitoolgoaws.GetELBInfo(elbClient, *argELBName) //ポインタ
-			//fmt.Println(elasticLoadbalancers)
 			if *argShow {
 				clitoolgoaws.ListELBBackendInstances(elbClient, elasticLoadbalancers, "show")
-				//clitoolgoaws.ListELBBackendInstances(elbClient, elasticLoadbalancers, "show")
-			}else{
-				fmt.Println("`-show` slect option")
-				os.Exit(1)
-			}
-		}else{
-			clitoolgoaws.ListELB(elbClient, nil)
-		}
+				} else if *argRegister  && *argInstances != ""{
+					clitoolgoaws.ControlELB(elbClient, *argELBName, *argInstances, "register")
+		    	} else if *argDeregister  && *argInstances != ""{
+					clitoolgoaws.ControlELB(elbClient, *argELBName, *argInstances, "deregister")
+				} else {
+					fmt.Println("`-show` slect option")
+					os.Exit(1)
+				}
+		} else {
+				clitoolgoaws.ListELB(elbClient, nil)
+		       }
 	}
 }
+
