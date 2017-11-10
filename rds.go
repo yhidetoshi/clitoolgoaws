@@ -15,7 +15,6 @@ const (
 	RDS = "rds"
 )
 
-
 // RDSリソース接続用
 func AwsRDSClient(profile string, region string) *rds.RDS {
 	var config aws.Config
@@ -31,7 +30,6 @@ func AwsRDSClient(profile string, region string) *rds.RDS {
 	return rdsClient
 }
 
-
 func StopRDSInstances(rdsClient *rds.RDS, rdsInstances *string) {
 	params := &rds.StopDBInstanceInput{
 		DBInstanceIdentifier: rdsInstances,
@@ -45,7 +43,6 @@ func StopRDSInstances(rdsClient *rds.RDS, rdsInstances *string) {
 	}
 }
 
-
 func StartRDSInstances(rdsClient *rds.RDS, rdsInstances *string) {
 	params := &rds.StartDBInstanceInput{
 		DBInstanceIdentifier: rdsInstances,
@@ -58,7 +55,6 @@ func StartRDSInstances(rdsClient *rds.RDS, rdsInstances *string) {
 		fmt.Println("Success...!")
 	}
 }
-
 
 func ListRDSInstances(rdsClient *rds.RDS, rdsInstances *string) {
 	params := &rds.DescribeDBInstancesInput{
@@ -88,7 +84,6 @@ func ListRDSInstances(rdsClient *rds.RDS, rdsInstances *string) {
 	OutputFormat(allDBInstances, RDS)
 }
 
-
 func ControlRDSInstances(rdsClient *rds.RDS, rdsInstances *string, operation string) {
 	ListRDSInstances(rdsClient, rdsInstances)
 
@@ -114,7 +109,6 @@ func ControlRDSInstances(rdsClient *rds.RDS, rdsInstances *string, operation str
 	}
 }
 
-
 func GetRDSInstanceName(rdsClient *rds.RDS, rdsInstances string) *string {
 	splitedInstances := strings.Split(rdsInstances, ",")
 	res, err := rdsClient.DescribeDBInstances(nil)
@@ -132,4 +126,3 @@ func GetRDSInstanceName(rdsClient *rds.RDS, rdsInstances string) *string {
 	}
 	return instanceName
 }
-

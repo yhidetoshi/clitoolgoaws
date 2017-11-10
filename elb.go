@@ -1,6 +1,6 @@
 package clitoolgoaws
 
-import(
+import (
 	"fmt"
 	"os"
 	"strings"
@@ -11,8 +11,8 @@ import(
 	"github.com/aws/aws-sdk-go/service/elb"
 )
 
-const(
-	ELB = "elb"
+const (
+	ELB     = "elb"
 	ELB_INS = "elb_ins"
 )
 
@@ -21,7 +21,7 @@ func AwsELBClient(profile string, region string) *elb.ELB {
 	if profile != "" {
 		creds := credentials.NewSharedCredentials("", profile)
 		config = aws.Config{Region: aws.String(region), Credentials: creds}
-	}else{
+	} else {
 		config = aws.Config{Region: aws.String(region)}
 	}
 	ses := session.New(&config)
@@ -31,7 +31,7 @@ func AwsELBClient(profile string, region string) *elb.ELB {
 }
 
 // ELBの情報を取得
-func ListELB(elbClient *elb.ELB, elbName []*string){
+func ListELB(elbClient *elb.ELB, elbName []*string) {
 	params := &elb.DescribeLoadBalancersInput{
 		//LoadBalancerName: aws.String(elbName),
 		LoadBalancerNames: elbName,
@@ -44,7 +44,7 @@ func ListELB(elbClient *elb.ELB, elbName []*string){
 	}
 	//var backendInstances string
 
-	for _, resInfo := range resELBInfo.LoadBalancerDescriptions{
+	for _, resInfo := range resELBInfo.LoadBalancerDescriptions {
 
 		loadbalancers := []string{
 			*resInfo.LoadBalancerName,
@@ -59,7 +59,7 @@ func ListELB(elbClient *elb.ELB, elbName []*string){
 }
 
 // ELB名を取得
-func GetELBInfo(elbClient *elb.ELB, elbName string) []*string{
+func GetELBInfo(elbClient *elb.ELB, elbName string) []*string {
 	splitedELBlist := strings.Split(elbName, ",")
 
 	res, err := elbClient.DescribeLoadBalancers(nil)
@@ -80,7 +80,7 @@ func GetELBInfo(elbClient *elb.ELB, elbName string) []*string{
 }
 
 // ELBのBackedInstanceを取得
-func ListELBBackendInstances(elbClient *elb.ELB, elbList []*string, operation string){
+func ListELBBackendInstances(elbClient *elb.ELB, elbList []*string, operation string) {
 	params := &elb.DescribeLoadBalancersInput{
 		LoadBalancerNames: elbList,
 	}
@@ -90,8 +90,8 @@ func ListELBBackendInstances(elbClient *elb.ELB, elbList []*string, operation st
 		os.Exit(1)
 	}
 	allBackendInstances := [][]string{}
-	for _, resInfo := range resELBInfo.LoadBalancerDescriptions{
-		for _, backendInstances := range resInfo.Instances{
+	for _, resInfo := range resELBInfo.LoadBalancerDescriptions {
+		for _, backendInstances := range resInfo.Instances {
 			backendInstances := []string{
 				*backendInstances.InstanceId,
 			}
@@ -101,20 +101,19 @@ func ListELBBackendInstances(elbClient *elb.ELB, elbList []*string, operation st
 	OutputFormat(allBackendInstances, ELB_INS)
 }
 
-<<<<<<< HEAD
 func RegisterELBInstances(elbClient *elb.ELB, ec2Instances string, elbList string) {
 	params := &elb.RegisterInstancesWithLoadBalancerInput{
-			Instances: []*elb.Instance{
-				{
-					InstanceId: aws.String(ec2Instances),
-				},
+		Instances: []*elb.Instance{
+			{
+				InstanceId: aws.String(ec2Instances),
+			},
 		},
 		LoadBalancerName: aws.String(elbList),
 	}
 	_, err := elbClient.RegisterInstancesWithLoadBalancer(params)
 	if err != nil {
 		os.Exit(1)
-	}else{
+	} else {
 		fmt.Println("Success...!")
 	}
 }
@@ -131,7 +130,7 @@ func DeregisterELBInstances(elbClient *elb.ELB, ec2Instances string, elbList str
 	_, err := elbClient.DeregisterInstancesFromLoadBalancer(params)
 	if err != nil {
 		os.Exit(1)
-	}else{
+	} else {
 		fmt.Println("Success...!")
 
 	}
@@ -143,14 +142,14 @@ func ControlELB(elbClient *elb.ELB, elbList string, ec2Instances string, operati
 	var stdin string
 	fmt.Scan(&stdin)
 
-	switch stdin{
+	switch stdin {
 	case "y", "Y", "yes":
-		switch operation{
+		switch operation {
 		case "register":
 			fmt.Println("register instances to ELB")
 			RegisterELBInstances(elbClient, ec2Instances, elbList)
 		case "deregister":
-		    fmt.Println("deregister instances to ELB")
+			fmt.Println("deregister instances to ELB")
 			DeregisterELBInstances(elbClient, ec2Instances, elbList)
 		}
 	case "n", "N", "no":
@@ -161,4 +160,3 @@ func ControlELB(elbClient *elb.ELB, elbList string, ec2Instances string, operati
 		os.Exit(0)
 	}
 }
-

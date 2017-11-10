@@ -91,7 +91,7 @@ func ListEC2Instances(ec2Client *ec2.EC2, ec2Instances []*string) {
 			var tagName string
 			for _, tagInfo := range instanceInfo.Tags {
 				if *tagInfo.Key == "Name" {
-				tagName = *tagInfo.Value
+					tagName = *tagInfo.Value
 				}
 			}
 			// PublicIpAddressがNULLの場合の例外処理
@@ -114,7 +114,7 @@ func ListEC2Instances(ec2Client *ec2.EC2, ec2Instances []*string) {
 				*instanceInfo.State.Name,
 			}
 			allInstances = append(allInstances, instance)
-    	}
+		}
 	}
 	OutputFormat(allInstances, EC2)
 }
@@ -129,16 +129,16 @@ func ControlEC2Instances(ec2Client *ec2.EC2, ec2Instances []*string, operation s
 	switch stdin {
 	case "y", "Y", "yes":
 		switch operation {
-	case "start":
-		fmt.Println("Start EC2 instance")
-		StartEC2Instances(ec2Client, ec2Instances)
-	case "stop":
-		fmt.Println("Stop EC2 instance")
-		StopEC2Instances(ec2Client, ec2Instances)
-	case "terminate":
-		fmt.Println("Terminate EC2 instance")
-		TerminateEC2Instances(ec2Client, ec2Instances)
-	}
+		case "start":
+			fmt.Println("Start EC2 instance")
+			StartEC2Instances(ec2Client, ec2Instances)
+		case "stop":
+			fmt.Println("Stop EC2 instance")
+			StopEC2Instances(ec2Client, ec2Instances)
+		case "terminate":
+			fmt.Println("Terminate EC2 instance")
+			TerminateEC2Instances(ec2Client, ec2Instances)
+		}
 	case "n", "N", "no":
 		fmt.Println("Exit ...!")
 		os.Exit(0)

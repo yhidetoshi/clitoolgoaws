@@ -8,17 +8,18 @@ import (
 	"github.com/yhidetoshi/clitoolgoaws"
 )
 
-
 var (
-	argResource    = flag.String("resource", "", "select resource")
-	argProfile     = flag.String("profile", "", "slect profile.")
-	argRegion      = flag.String("region", "ap-northeast-1", "slect Region")
-	argInstances   = flag.String("instances", "", " slect Instance ID or Instance Tag:Name or RDSinstanceName ")
+	argResource   = flag.String("resource", "", "select resource")
+	argProfile    = flag.String("profile", "", "slect profile.")
+	argRegion     = flag.String("region", "ap-northeast-1", "slect Region")
+	argInstances  = flag.String("instances", "", " slect Instance ID or Instance Tag:Name or RDSinstanceName ")
 	argELBName    = flag.String("elbname", "", "input elbname")
-	argStop        = flag.Bool("stop", false, "Instance stop")
-	argStart       = flag.Bool("start", false, "Instance start")
-	argShow         = flag.Bool("show", false,"show ELB backendend Instances")
-	argsTerminate  = flag.Bool("terminate", false, "Instance terminate")
+	argStop       = flag.Bool("stop", false, "Instance stop")
+	argStart      = flag.Bool("start", false, "Instance start")
+	argShow       = flag.Bool("show", false, "show ELB backendend Instances")
+	argsTerminate = flag.Bool("terminate", false, "Instance terminate")
+	argRegister   = flag.Bool("register", false, "Register Instances to ELB")
+	argDeregister = flag.Bool("deregister", false, "Deregister Instances to ELB")
 )
 
 func main() {
@@ -69,20 +70,24 @@ func main() {
 
 	// ELBのコマンド
 	var elasticLoadbalancers []*string
-	//var elbBackendInstances string
 	if *argResource == "elb" {
 		if *argELBName != "" {
 			elasticLoadbalancers = clitoolgoaws.GetELBInfo(elbClient, *argELBName) //ポインタ
-			//fmt.Println(elasticLoadbalancers)
 			if *argShow {
 				clitoolgoaws.ListELBBackendInstances(elbClient, elasticLoadbalancers, "show")
-				//clitoolgoaws.ListELBBackendInstances(elbClient, elasticLoadbalancers, "show")
-			}else{
+			} else if *argRegister && *argInstances != "" {
+				clitoolgoaws.ControlELB(elbClient, *argELBName, *argInstances, "register")
+				clitoolgoaws.ListELBBackendInstances(elbClient, elasticLoadbalancers, "show")
+			} else if *argDeregister && *argInstances != "" {
+				clitoolgoaws.ControlELB(elbClient, *argELBName, *argInstances, "deregister")
+				clitoolgoaws.ListELBBackendInstances(elbClient, elasticLoadbalancers, "show")
+			} else {
 				fmt.Println("`-show` slect option")
 				os.Exit(1)
 			}
-		}else{
+		} else {
 			clitoolgoaws.ListELB(elbClient, nil)
 		}
 	}
 }
+
