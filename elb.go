@@ -101,6 +101,7 @@ func ListELBBackendInstances(elbClient *elb.ELB, elbList []*string, operation st
 	OutputFormat(allBackendInstances, ELB_INS)
 }
 
+<<<<<<< HEAD
 func RegisterELBInstances(elbClient *elb.ELB, ec2Instances string, elbList string) {
 	params := &elb.RegisterInstancesWithLoadBalancerInput{
 			Instances: []*elb.Instance{
@@ -160,3 +161,4 @@ func ControlELB(elbClient *elb.ELB, elbList string, ec2Instances string, operati
 		os.Exit(0)
 	}
 }
+
