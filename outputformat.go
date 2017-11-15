@@ -17,6 +17,8 @@ func OutputFormat(data [][]string, resourceType string) {
 		table.SetHeader([]string{"ELB_Name", "Scheme", "VPCId", "DNSName"})
 	case ELB_INS:
 		table.SetHeader([]string{"BackEnd_INstance"})
+	case CLOUDWATCH:
+		table.SetHeader([]string{"Cloudwatch_Alerm", "MetricName", "Namespace"})
 	}
 
 	for _, value := range data {
