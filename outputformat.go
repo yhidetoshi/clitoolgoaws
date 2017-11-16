@@ -18,7 +18,7 @@ func OutputFormat(data [][]string, resourceType string) {
 	case ELB_INS:
 		table.SetHeader([]string{"BackEnd_INstance"})
 	case CLOUDWATCH:
-		table.SetHeader([]string{"Cloudwatch_Alerm", "MetricName", "Namespace"})
+		table.SetHeader([]string{"Cloudwatch_Alerm", "MetricName", "Namespace", "Dimensions", "AlarmActions", "State"})
 	}
 
 	for _, value := range data {

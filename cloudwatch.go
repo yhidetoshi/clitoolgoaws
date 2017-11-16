@@ -38,14 +38,38 @@ func ListCloudwatch(cloudwatchClient *cloudwatch.CloudWatch, cloudwatchName []*s
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
+
+
 	allAlerm := [][]string{}
+	var dimensionsInfo string
+	var alarmactionsInfo string
 
 	for _, resInfo := range res.MetricAlarms {
+
+		for _, alarmactions := range resInfo.AlarmActions {
+			alarmactionsInfo = *alarmactions
+		}
+
+		for _, dimensions := range resInfo.Dimensions {
+			switch *dimensions.Name {
+			case "InstanceId":
+				dimensionsInfo = *dimensions.Value
+			case "DBInstanceIdentifier":
+				dimensionsInfo = *dimensions.Value
+			case "StreamName":
+				dimensionsInfo = *dimensions.Value
+			case "LoadBalancerName":
+				dimensionsInfo = *dimensions.Value
+			}
+		}
+
 		stream := []string {
 			*resInfo.AlarmName,
-//			*resInfo.AlarmDescription,
 			*resInfo.MetricName,
 			*resInfo.Namespace,
+			dimensionsInfo,
+			alarmactionsInfo,
+			*resInfo.StateValue,
 		}
 		allAlerm = append(allAlerm, stream)
 	}
