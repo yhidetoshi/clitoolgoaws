@@ -7,6 +7,9 @@ import (
 
 	"github.com/yhidetoshi/clitoolgoaws"
 )
+const (
+	BILLING_REGION="us-east-1"
+)
 
 var (
 	argResource   = flag.String("resource", "", "select resource")
@@ -14,10 +17,10 @@ var (
 	argRegion     = flag.String("region", "ap-northeast-1", "slect Region")
 	argInstances  = flag.String("instances", "", " slect Instance ID or Instance Tag:Name or RDSinstanceName ")
 	argELBName    = flag.String("elbname", "", "input elbname")
-	argCloudwatch = flag.String("cloudwatch", "", "input cloudwatch")
 	argStop       = flag.Bool("stop", false, "Instance stop")
 	argStart      = flag.Bool("start", false, "Instance start")
 	argShow       = flag.Bool("show", false, "show ELB backendend Instances")
+	argBilling    = flag.Bool("billing", false,"get billing info")
 	argsTerminate = flag.Bool("terminate", false, "Instance terminate")
 	argRegister   = flag.Bool("register", false, "Register Instances to ELB")
 	argDeregister = flag.Bool("deregister", false, "Deregister Instances to ELB")
@@ -29,7 +32,7 @@ func main() {
 	ec2Client     := clitoolgoaws.AwsEC2Client(*argProfile, *argRegion)
 	rdsClient     := clitoolgoaws.AwsRDSClient(*argProfile, *argRegion)
 	elbClient     := clitoolgoaws.AwsELBClient(*argProfile, *argRegion)
-	cloudwatchClient := clitoolgoaws.AwscloudwatchClient(*argProfile, *argRegion)
+	cloudwatchClient := clitoolgoaws.AwsCloudwatchClient(*argProfile, *argRegion)
 	kinesisClient := clitoolgoaws.AwsKinesisClient(*argProfile, *argRegion)
 
 	// EC2のコマンド
@@ -95,12 +98,15 @@ func main() {
 
 	// Cloudwatchのコマンド
 	if *argResource == "cloudwatch" {
-		clitoolgoaws.ListCloudwatch(cloudwatchClient, nil)
+		if *argBilling {
+			clitoolgoaws.GetBilling(*argProfile, BILLING_REGION)
+		}else{
+			clitoolgoaws.ListCloudwatch(cloudwatchClient, nil)
+		}
 	}
+
 	// Kinesisのコマンド
 	if *argResource == "kinesis" {
 		clitoolgoaws.ListKinesis(kinesisClient, nil)
 	}
-
-
 }

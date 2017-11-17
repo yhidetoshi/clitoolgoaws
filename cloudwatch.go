@@ -4,6 +4,7 @@ package clitoolgoaws
 import (
 	"fmt"
 	"os"
+	"time"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -12,9 +13,10 @@ import (
 
 const (
 	CLOUDWATCH = "cloudwatch"
+	BILLING    = "billing"
 )
 
-func AwscloudwatchClient(profile string, region string) *cloudwatch.CloudWatch{
+func AwsCloudwatchClient(profile string, region string) *cloudwatch.CloudWatch{
 	var config aws.Config
 	if profile != "" {
 		creds := credentials.NewSharedCredentials("", profile)
@@ -74,4 +76,42 @@ func ListCloudwatch(cloudwatchClient *cloudwatch.CloudWatch, cloudwatchName []*s
 		allAlerm = append(allAlerm, stream)
 	}
 	OutputFormat(allAlerm, CLOUDWATCH)
+}
+
+func GetBilling(profile string, region string) {
+	var config aws.Config
+	if profile != "" {
+		creds := credentials.NewSharedCredentials("", profile)
+		config = aws.Config{Region: aws.String(region), Credentials: creds}
+	} else{
+		config = aws.Config{Region: aws.String(region)}
+	}
+	ses := session.New(&config)
+	cloudwatchClient := cloudwatch.New(ses)
+	params := &cloudwatch.GetMetricStatisticsInput{
+		EndTime:	aws.Time(time.Now()),
+		MetricName:	aws.String("EstimatedCharges"),
+		Namespace:  aws.String("AWS/Billing"),
+		Period: 	aws.Int64(86400),
+		StartTime:  aws.Time(time.Now().Add(time.Hour * -24)),
+		Statistics:  []*string{
+			aws.String(cloudwatch.StatisticMaximum),
+		},
+		Dimensions: []*cloudwatch.Dimension{
+			{
+				Name: aws.String("Currency"),
+				Value: aws.String("USD"),
+			},
+		},
+	}
+	res, err := cloudwatchClient.GetMetricStatistics(params)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+	var billing float64
+	for _, resInfo := range res.Datapoints {
+		billing	= *resInfo.Maximum
+	}
+	fmt.Println(billing)
 }
