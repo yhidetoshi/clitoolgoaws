@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"time"
+	"strconv"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -13,7 +14,7 @@ import (
 
 const (
 	CLOUDWATCH = "cloudwatch"
-	BILLING    = "billing"
+	CLOUDWATCH_BILLING = "billing"
 )
 
 func AwsCloudwatchClient(profile string, region string) *cloudwatch.CloudWatch{
@@ -109,9 +110,17 @@ func GetBilling(profile string, region string) {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
-	var billing float64
+	allBilling := [][]string{}
+	var buffBilling float64
+
 	for _, resInfo := range res.Datapoints {
-		billing	= *resInfo.Maximum
+		buffBilling = *resInfo.Maximum
+		billing := strconv.FormatFloat(buffBilling, 'G', 4, 64)
+		result := []string{
+			billing,
+		}
+		allBilling = append(allBilling, result)
 	}
-	fmt.Println(billing)
+	//PostSlack(billing)
+	OutputFormat(allBilling, CLOUDWATCH_BILLING)
 }

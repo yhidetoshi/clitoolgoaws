@@ -19,6 +19,8 @@ func OutputFormat(data [][]string, resourceType string) {
 		table.SetHeader([]string{"BackEnd_INstance"})
 	case CLOUDWATCH:
 		table.SetHeader([]string{"Cloudwatch_Alerm", "MetricName", "Namespace", "Dimensions", "AlarmActions", "State"})
+	case CLOUDWATCH_BILLING:
+		table.SetHeader([]string{ "BILLING_(USD)"})
 	case KINESIS:
 		table.SetHeader([]string{ "Stream_Name"})
 	}
