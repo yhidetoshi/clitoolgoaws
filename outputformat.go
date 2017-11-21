@@ -10,7 +10,7 @@ func OutputFormat(data [][]string, resourceType string) {
 
 	switch resourceType {
 	case EC2:
-		table.SetHeader([]string{"tag:Name", "InstanceId", "InstanceType", "AvailabilityZone", "PrivateIp", "PublicIp", "Status"})
+		table.SetHeader([]string{"tag:Name", "InstanceId", "InstanceType", "AZ", "PrivateIp", "PublicIp", "Status", "VPCID", "SubnetId", "DeviceType", "KeyName"})
 	case RDS:
 		table.SetHeader([]string{"DBName", "InstanceType", "Status", "Engine", "EngineVersion", "MasterUsername", "DBName", "AvailabilityZone"})
 	case ELB:
@@ -18,7 +18,7 @@ func OutputFormat(data [][]string, resourceType string) {
 	case ELB_INS:
 		table.SetHeader([]string{"BackEnd_INstance"})
 	case CLOUDWATCH:
-		table.SetHeader([]string{"Cloudwatch_Alerm", "MetricName", "Namespace", "Dimensions", "AlarmActions", "State"})
+		table.SetHeader([]string{"Cloudwatch_Alerm", "MetricName", "Namespace", "Dimensions", "Period", "THRESHOLD", "Statistic", "AlarmActions", "State"})
 	case CLOUDWATCH_BILLING:
 		table.SetHeader([]string{ "BILLING_(USD)"})
 	case KINESIS:

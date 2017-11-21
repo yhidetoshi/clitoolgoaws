@@ -1,28 +1,27 @@
-
 package clitoolgoaws
 
 import (
 	"fmt"
-	"os"
-	"time"
-	"strconv"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/awslabs/aws-sdk-go/service/cloudwatch"
+	"os"
+	"strconv"
+	"time"
 )
 
 const (
-	CLOUDWATCH = "cloudwatch"
+	CLOUDWATCH         = "cloudwatch"
 	CLOUDWATCH_BILLING = "billing"
 )
 
-func AwsCloudwatchClient(profile string, region string) *cloudwatch.CloudWatch{
+func AwsCloudwatchClient(profile string, region string) *cloudwatch.CloudWatch {
 	var config aws.Config
 	if profile != "" {
 		creds := credentials.NewSharedCredentials("", profile)
 		config = aws.Config{Region: aws.String(region), Credentials: creds}
-	} else{
+	} else {
 		config = aws.Config{Region: aws.String(region)}
 	}
 	ses := session.New(&config)
@@ -33,7 +32,7 @@ func AwsCloudwatchClient(profile string, region string) *cloudwatch.CloudWatch{
 }
 
 func ListCloudwatch(cloudwatchClient *cloudwatch.CloudWatch, cloudwatchName []*string) {
-	params := &cloudwatch.DescribeAlarmsInput {
+	params := &cloudwatch.DescribeAlarmsInput{
 		AlarmNames: cloudwatchName,
 	}
 	res, err := cloudwatchClient.DescribeAlarms(params)
@@ -42,10 +41,11 @@ func ListCloudwatch(cloudwatchClient *cloudwatch.CloudWatch, cloudwatchName []*s
 		os.Exit(1)
 	}
 
-
 	allAlerm := [][]string{}
 	var dimensionsInfo string
 	var alarmactionsInfo string
+	var _period int64
+	var _threshold float64
 
 	for _, resInfo := range res.MetricAlarms {
 
@@ -65,12 +65,20 @@ func ListCloudwatch(cloudwatchClient *cloudwatch.CloudWatch, cloudwatchName []*s
 				dimensionsInfo = *dimensions.Value
 			}
 		}
+		_period = *resInfo.Period
+		period := strconv.FormatInt(_period, 10)
 
-		stream := []string {
+		_threshold = *resInfo.Threshold
+		threshold := strconv.FormatFloat(_threshold, 'G', 4, 64)
+
+		stream := []string{
 			*resInfo.AlarmName,
 			*resInfo.MetricName,
 			*resInfo.Namespace,
 			dimensionsInfo,
+			period,
+			threshold,
+			*resInfo.Statistic,
 			alarmactionsInfo,
 			*resInfo.StateValue,
 		}
@@ -84,23 +92,23 @@ func GetBilling(profile string, region string) {
 	if profile != "" {
 		creds := credentials.NewSharedCredentials("", profile)
 		config = aws.Config{Region: aws.String(region), Credentials: creds}
-	} else{
+	} else {
 		config = aws.Config{Region: aws.String(region)}
 	}
 	ses := session.New(&config)
 	cloudwatchClient := cloudwatch.New(ses)
 	params := &cloudwatch.GetMetricStatisticsInput{
-		EndTime:	aws.Time(time.Now()),
-		MetricName:	aws.String("EstimatedCharges"),
+		EndTime:    aws.Time(time.Now()),
+		MetricName: aws.String("EstimatedCharges"),
 		Namespace:  aws.String("AWS/Billing"),
-		Period: 	aws.Int64(86400),
+		Period:     aws.Int64(86400),
 		StartTime:  aws.Time(time.Now().Add(time.Hour * -24)),
-		Statistics:  []*string{
+		Statistics: []*string{
 			aws.String(cloudwatch.StatisticMaximum),
 		},
 		Dimensions: []*cloudwatch.Dimension{
 			{
-				Name: aws.String("Currency"),
+				Name:  aws.String("Currency"),
 				Value: aws.String("USD"),
 			},
 		},

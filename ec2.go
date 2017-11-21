@@ -94,6 +94,7 @@ func ListEC2Instances(ec2Client *ec2.EC2, ec2Instances []*string) {
 					tagName = *tagInfo.Value
 				}
 			}
+
 			// PublicIpAddressがNULLの場合の例外処理
 			if instanceInfo.PublicIpAddress == nil {
 				instanceInfo.PublicIpAddress = aws.String("NULL")
@@ -112,6 +113,10 @@ func ListEC2Instances(ec2Client *ec2.EC2, ec2Instances []*string) {
 				*instanceInfo.PublicIpAddress,
 				*instanceInfo.PrivateIpAddress,
 				*instanceInfo.State.Name,
+				*instanceInfo.VpcId,
+				*instanceInfo.SubnetId,
+				*instanceInfo.RootDeviceType,
+				*instanceInfo.KeyName,
 			}
 			allInstances = append(allInstances, instance)
 		}
