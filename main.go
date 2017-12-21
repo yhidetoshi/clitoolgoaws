@@ -35,7 +35,7 @@ func main() {
 	elbClient := clitoolgoaws.AwsELBClient(*argProfile, *argRegion)
 	cloudwatchClient := clitoolgoaws.AwsCloudwatchClient(*argProfile, *argRegion)
 	kinesisClient := clitoolgoaws.AwsKinesisClient(*argProfile, *argRegion)
-	iamClient := clitoolgoaws.AwsIamClient(*argProfile, *argRegion)
+	iamClient := clitoolgoaws.AwsIAMClient(*argProfile, *argRegion)
 
 	// EC2のコマンド
 	var ec2Instances []*string
@@ -113,7 +113,7 @@ func main() {
 	}
 
 	// IAMコマンド
-	if *argResource == "iam" {
-		clitoolgoaws.ListIamUser(iamClient, nil)
+	if *argResource == "iam-user" {
+		clitoolgoaws.ListIAMUser(iamClient, nil)
 	}
 }

@@ -14,7 +14,7 @@ const (
 	IAM = "iam"
 )
 
-func AwsIamClient(profile string, region string) *iam.IAM {
+func AwsIAMClient(profile string, region string) *iam.IAM {
 
 	var config aws.Config
 	if profile != "" {
@@ -29,7 +29,7 @@ func AwsIamClient(profile string, region string) *iam.IAM {
 	return iamClient
 }
 
-func ListIamUser(iamClient *iam.IAM, userNmaeList *string) {
+func ListIAMUser(iamClient *iam.IAM, userNmaeList *string) {
 
 	res, err := iamClient.ListUsers(&iam.ListUsersInput{
 		MaxItems: aws.Int64(10),
