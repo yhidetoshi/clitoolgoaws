@@ -31,10 +31,6 @@ func AwsIamClient(profile string, region string) *iam.IAM {
 
 func ListIamUser(iamClient *iam.IAM, userNmaeList *string) {
 
-	//	params := &iam.ListUsersInput{
-	//		MaxItems: aws.Int64(10),
-	//	}
-
 	res, err := iamClient.ListUsers(&iam.ListUsersInput{
 		MaxItems: aws.Int64(10),
 	})
