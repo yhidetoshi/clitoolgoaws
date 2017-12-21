@@ -7,8 +7,9 @@ import (
 
 	"github.com/yhidetoshi/clitoolgoaws"
 )
+
 const (
-	BILLING_REGION="us-east-1"
+	BILLING_REGION = "us-east-1"
 )
 
 var (
@@ -20,7 +21,7 @@ var (
 	argStop       = flag.Bool("stop", false, "Instance stop")
 	argStart      = flag.Bool("start", false, "Instance start")
 	argShow       = flag.Bool("show", false, "show ELB backendend Instances")
-	argBilling    = flag.Bool("billing", false,"get billing info")
+	argBilling    = flag.Bool("billing", false, "get billing info")
 	argsTerminate = flag.Bool("terminate", false, "Instance terminate")
 	argRegister   = flag.Bool("register", false, "Register Instances to ELB")
 	argDeregister = flag.Bool("deregister", false, "Deregister Instances to ELB")
@@ -29,11 +30,12 @@ var (
 func main() {
 	flag.Parse()
 
-	ec2Client     := clitoolgoaws.AwsEC2Client(*argProfile, *argRegion)
-	rdsClient     := clitoolgoaws.AwsRDSClient(*argProfile, *argRegion)
-	elbClient     := clitoolgoaws.AwsELBClient(*argProfile, *argRegion)
+	ec2Client := clitoolgoaws.AwsEC2Client(*argProfile, *argRegion)
+	rdsClient := clitoolgoaws.AwsRDSClient(*argProfile, *argRegion)
+	elbClient := clitoolgoaws.AwsELBClient(*argProfile, *argRegion)
 	cloudwatchClient := clitoolgoaws.AwsCloudwatchClient(*argProfile, *argRegion)
 	kinesisClient := clitoolgoaws.AwsKinesisClient(*argProfile, *argRegion)
+	iamClient := clitoolgoaws.AwsIamClient(*argProfile, *argRegion)
 
 	// EC2のコマンド
 	var ec2Instances []*string
@@ -100,7 +102,7 @@ func main() {
 	if *argResource == "cloudwatch" {
 		if *argBilling {
 			clitoolgoaws.GetBilling(*argProfile, BILLING_REGION)
-		}else{
+		} else {
 			clitoolgoaws.ListCloudwatch(cloudwatchClient, nil)
 		}
 	}
@@ -108,5 +110,10 @@ func main() {
 	// Kinesisのコマンド
 	if *argResource == "kinesis" {
 		clitoolgoaws.ListKinesis(kinesisClient, nil)
+	}
+
+	// IAMコマンド
+	if *argResource == "iam" {
+		clitoolgoaws.ListIamUser(iamClient, nil)
 	}
 }

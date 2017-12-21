@@ -31,7 +31,6 @@ func AwsEC2Client(profile string, region string) *ec2.EC2 {
 	return ec2Client
 }
 
-
 func StopEC2Instances(ec2Client *ec2.EC2, ec2Instances []*string) {
 	params := &ec2.StopInstancesInput{
 		InstanceIds: ec2Instances,
@@ -59,7 +58,6 @@ func StartEC2Instances(ec2Client *ec2.EC2, ec2Instances []*string) {
 		fmt.Printf("%s started", *r.InstanceId)
 	}
 }
-
 
 func TerminateEC2Instances(ec2Client *ec2.EC2, ec2Instances []*string) {
 	params := &ec2.TerminateInstancesInput{
@@ -179,4 +177,3 @@ func GetEC2InstanceIds(ec2Client *ec2.EC2, ec2Instances string) []*string {
 	}
 	return instanceIds
 }
-
