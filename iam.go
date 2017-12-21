@@ -11,7 +11,8 @@ import (
 )
 
 const (
-	IAM = "iam"
+	IAMUSER  = "iam-user"
+	IAMGROUP = "iam-group"
 )
 
 func AwsIAMClient(profile string, region string) *iam.IAM {
@@ -48,5 +49,27 @@ func ListIAMUser(iamClient *iam.IAM, userNmaeList *string) {
 		}
 		allusers = append(allusers, users)
 	}
-	OutputFormat(allusers, IAM)
+	OutputFormat(allusers, IAMUSER)
+}
+
+func ListIAMGroup(iamClient *iam.IAM, userGroupList *string) {
+
+	res, err := iamClient.ListGroups(&iam.ListGroupsInput{
+		MaxItems: aws.Int64(10),
+	})
+
+	//res, err := iamClient.ListUsers(params)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+	allgroups := [][]string{}
+
+	for _, groupInfo := range res.Groups {
+		groups := []string{
+			*groupInfo.GroupName,
+		}
+		allgroups = append(allgroups, groups)
+	}
+	OutputFormat(allgroups, IAMGROUP)
 }

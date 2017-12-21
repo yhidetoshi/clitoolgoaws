@@ -24,8 +24,10 @@ func OutputFormat(data [][]string, resourceType string) {
 		table.SetHeader([]string{"BILLING_(USD)"})
 	case KINESIS:
 		table.SetHeader([]string{"Stream_Name"})
-	case IAM:
+	case IAMUSER:
 		table.SetHeader([]string{"username"})
+	case IAMGROUP:
+		table.SetHeader([]string{"groupname"})
 	}
 
 	for _, value := range data {

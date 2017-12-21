@@ -112,8 +112,13 @@ func main() {
 		clitoolgoaws.ListKinesis(kinesisClient, nil)
 	}
 
-	// IAMコマンド
+	// IAM-Userコマンド
 	if *argResource == "iam-user" {
 		clitoolgoaws.ListIAMUser(iamClient, nil)
 	}
+	// IAM-Groupコマンド
+	if *argResource == "iam-group" {
+		clitoolgoaws.ListIAMGroup(iamClient, nil)
+	}
+
 }
