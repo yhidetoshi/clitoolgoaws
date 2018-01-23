@@ -18,6 +18,8 @@ var (
 	argRegion     = flag.String("region", "ap-northeast-1", "slect Region")
 	argInstances  = flag.String("instances", "", " slect Instance ID or Instance Tag:Name or RDSinstanceName ")
 	argELBName    = flag.String("elbname", "", "input elbname")
+	argAmiName    = flag.String("aminame", "", "input ami name")
+	argAMI        = flag.Bool("ami", false, "create ami")
 	argStop       = flag.Bool("stop", false, "Instance stop")
 	argStart      = flag.Bool("start", false, "Instance start")
 	argShow       = flag.Bool("show", false, "show ELB backendend Instances")
@@ -39,6 +41,7 @@ func main() {
 
 	// EC2のコマンド
 	var ec2Instances []*string
+	var ec2InstancesAMI *string
 	if *argResource == "ec2" {
 		if *argInstances != "" {
 			ec2Instances = clitoolgoaws.GetEC2InstanceIds(ec2Client, *argInstances)
@@ -48,8 +51,11 @@ func main() {
 				clitoolgoaws.ControlEC2Instances(ec2Client, ec2Instances, "stop")
 			} else if *argsTerminate {
 				clitoolgoaws.ControlEC2Instances(ec2Client, ec2Instances, "terminate")
+			} else if *argAMI {
+				ec2InstancesAMI = clitoolgoaws.GetEC2InstanceIdsAMI(ec2Client, *argInstances)
+				clitoolgoaws.CreateAMI(ec2Client, argAmiName, ec2InstancesAMI)
 			} else {
-				fmt.Println("`-start` or `-stop` or `-terminate` slect option")
+				fmt.Println("`-start` or `-stop` or `-terminate` or `-ami` slect option")
 				os.Exit(1)
 			}
 		} else {
