@@ -13,6 +13,7 @@ import (
 
 const (
 	EC2 = "ec2"
+	AMI = "ami"
 )
 
 // EC2リソース接続用
@@ -78,9 +79,10 @@ func CreateAMI(ec2Clinet *ec2.EC2, ec2AMIName *string, ec2Instances *string) {
 	//var reboot bool
 	reboot := true
 	params := &ec2.CreateImageInput{
-		InstanceId: ec2Instances,
-		Name:       ec2AMIName,
-		NoReboot:   &reboot,
+		InstanceId:  ec2Instances,
+		Name:        ec2AMIName,
+		NoReboot:    &reboot,
+		Description: ec2AMIName,
 	}
 	res, err := ec2Clinet.CreateImage(params)
 	if err != nil {
@@ -88,6 +90,37 @@ func CreateAMI(ec2Clinet *ec2.EC2, ec2AMIName *string, ec2Instances *string) {
 		os.Exit(1)
 	}
 	fmt.Printf("success! creating... %s\n", *res.ImageId)
+}
+
+func ListAMI(ec2Client *ec2.EC2, images []*string) {
+	var owner []*string
+	var _owner []string = []string{"self"}
+	// Convert []string to []*string
+	owner = aws.StringSlice(_owner)
+
+	params := &ec2.DescribeImagesInput{
+		ImageIds: images,
+		Owners:   owner,
+	}
+	res, err := ec2Client.DescribeImages(params)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+	//fmt.Println(res)
+	allAmiInfo := [][]string{}
+	for _, resInfo := range res.Images {
+		amiInfo := []string{
+			*resInfo.Name,
+			*resInfo.ImageId,
+			*resInfo.OwnerId,
+			//*resInfo.Public,
+			*resInfo.State,
+			*resInfo.CreationDate,
+		}
+		allAmiInfo = append(allAmiInfo, amiInfo)
+	}
+	OutputFormat(allAmiInfo, AMI)
 }
 
 func ListEC2Instances(ec2Client *ec2.EC2, ec2Instances []*string) {

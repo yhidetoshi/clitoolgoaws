@@ -12,6 +12,8 @@ func OutputFormat(data [][]string, resourceType string) {
 	switch resourceType {
 	case EC2:
 		table.SetHeader([]string{"tag:Name", "InstanceId", "InstanceType", "AZ", "PublicIp", "PrivateIp", "Status", "VPCID", "SubnetId", "DeviceType", "KeyName"})
+	case AMI:
+		table.SetHeader([]string{"Name", "ImageId", "OwnerId", "State", "CreationDate"})
 	case RDS:
 		table.SetHeader([]string{"DBName", "InstanceType", "Status", "Engine", "EngineVersion", "MasterUsername", "DBName", "AvailabilityZone"})
 	case ELB:

@@ -20,6 +20,7 @@ var (
 	argELBName    = flag.String("elbname", "", "input elbname")
 	argAmiName    = flag.String("aminame", "", "input ami name")
 	argAMI        = flag.Bool("ami", false, "create ami")
+	argAMIList    = flag.Bool("amilist", false, "list ami")
 	argStop       = flag.Bool("stop", false, "Instance stop")
 	argStart      = flag.Bool("start", false, "Instance start")
 	argShow       = flag.Bool("show", false, "show ELB backendend Instances")
@@ -42,7 +43,12 @@ func main() {
 	// EC2のコマンド
 	var ec2Instances []*string
 	var ec2InstancesAMI *string
+	exeFlag := true
 	if *argResource == "ec2" {
+		if *argAMIList {
+			clitoolgoaws.ListAMI(ec2Client, nil)
+			exeFlag = false
+		}
 		if *argInstances != "" {
 			ec2Instances = clitoolgoaws.GetEC2InstanceIds(ec2Client, *argInstances)
 			if *argStart {
@@ -58,7 +64,7 @@ func main() {
 				fmt.Println("`-start` or `-stop` or `-terminate` or `-ami` slect option")
 				os.Exit(1)
 			}
-		} else {
+		} else if exeFlag {
 			clitoolgoaws.ListEC2Instances(ec2Client, nil)
 		}
 	}
