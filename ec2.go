@@ -122,7 +122,6 @@ func ListAMI(ec2Client *ec2.EC2, images []*string) {
 		allAmiInfo = append(allAmiInfo, amiInfo)
 	}
 	OutputFormat(allAmiInfo, AMI)
-
 }
 
 func ListEC2Instances(ec2Client *ec2.EC2, ec2Instances []*string) {
