@@ -3,6 +3,7 @@ package clitoolgoaws
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -13,6 +14,7 @@ import (
 
 const (
 	EC2 = "ec2"
+	AMI = "ami"
 )
 
 // EC2リソース接続用
@@ -30,7 +32,6 @@ func AwsEC2Client(profile string, region string) *ec2.EC2 {
 
 	return ec2Client
 }
-
 
 func StopEC2Instances(ec2Client *ec2.EC2, ec2Instances []*string) {
 	params := &ec2.StopInstancesInput{
@@ -60,7 +61,6 @@ func StartEC2Instances(ec2Client *ec2.EC2, ec2Instances []*string) {
 	}
 }
 
-
 func TerminateEC2Instances(ec2Client *ec2.EC2, ec2Instances []*string) {
 	params := &ec2.TerminateInstancesInput{
 		InstanceIds: ec2Instances,
@@ -73,6 +73,56 @@ func TerminateEC2Instances(ec2Client *ec2.EC2, ec2Instances []*string) {
 	for _, r := range res.TerminatingInstances {
 		fmt.Printf("%s terminated", *r.InstanceId)
 	}
+}
+
+//func CreateAMI(ec2Clinet *ec2.EC2, ec2Instances *string, ec2AMIName *string, reboot *bool) {
+func CreateAMI(ec2Clinet *ec2.EC2, ec2AMIName *string, ec2Instances *string) {
+	//var reboot bool
+	reboot := true
+	params := &ec2.CreateImageInput{
+		InstanceId:  ec2Instances,
+		Name:        ec2AMIName,
+		NoReboot:    &reboot,
+		Description: ec2AMIName,
+	}
+	res, err := ec2Clinet.CreateImage(params)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+	fmt.Printf("success! creating... %s\n", *res.ImageId)
+}
+
+func ListAMI(ec2Client *ec2.EC2, images []*string) {
+	var owner []*string
+	var _owner []string = []string{"self"}
+	// Convert []string to []*string
+	owner = aws.StringSlice(_owner)
+
+	params := &ec2.DescribeImagesInput{
+		ImageIds: images,
+		Owners:   owner,
+	}
+	res, err := ec2Client.DescribeImages(params)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+	//fmt.Println(res)
+	allAmiInfo := [][]string{}
+	for _, resInfo := range res.Images {
+		amiInfo := []string{
+			*resInfo.Name,
+			*resInfo.ImageId,
+			*resInfo.OwnerId,
+			strconv.FormatBool(*resInfo.Public),
+			*resInfo.State,
+			*resInfo.CreationDate,
+		}
+		allAmiInfo = append(allAmiInfo, amiInfo)
+	}
+	OutputFormat(allAmiInfo, AMI)
+
 }
 
 func ListEC2Instances(ec2Client *ec2.EC2, ec2Instances []*string) {
@@ -180,3 +230,29 @@ func GetEC2InstanceIds(ec2Client *ec2.EC2, ec2Instances string) []*string {
 	return instanceIds
 }
 
+func GetEC2InstanceIdsAMI(ec2Client *ec2.EC2, ec2Instances string) *string {
+	splitedInstances := strings.Split(ec2Instances, ",")
+	res, err := ec2Client.DescribeInstances(nil)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+	var instanceIds *string
+	for _, s := range splitedInstances {
+		for _, r := range res.Reservations {
+			for _, i := range r.Instances {
+				for _, t := range i.Tags {
+					if *t.Key == "Name" {
+						if *t.Value == s {
+							instanceIds = aws.String(*i.InstanceId)
+						}
+					}
+				}
+				if *i.InstanceId == s {
+					instanceIds = aws.String(*i.InstanceId)
+				}
+			}
+		}
+	}
+	return instanceIds
+}
