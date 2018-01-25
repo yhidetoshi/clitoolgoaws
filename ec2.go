@@ -3,6 +3,7 @@ package clitoolgoaws
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -74,9 +75,7 @@ func TerminateEC2Instances(ec2Client *ec2.EC2, ec2Instances []*string) {
 	}
 }
 
-//func CreateAMI(ec2Clinet *ec2.EC2, ec2Instances *string, ec2AMIName *string, reboot *bool) {
-func CreateAMI(ec2Clinet *ec2.EC2, ec2AMIName *string, ec2Instances *string) {
-	//var reboot bool
+func RegisterAMI(ec2Client *ec2.EC2, ec2AMIName *string, ec2Instances *string) {
 	reboot := true
 	params := &ec2.CreateImageInput{
 		InstanceId:  ec2Instances,
@@ -84,12 +83,24 @@ func CreateAMI(ec2Clinet *ec2.EC2, ec2AMIName *string, ec2Instances *string) {
 		NoReboot:    &reboot,
 		Description: ec2AMIName,
 	}
-	res, err := ec2Clinet.CreateImage(params)
+	res, err := ec2Client.CreateImage(params)
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
 	fmt.Printf("success! creating... %s\n", *res.ImageId)
+}
+
+func DeregisterAMI(ec2Client *ec2.EC2, ec2AMIid *string) {
+	params := &ec2.DeregisterImageInput{
+		ImageId: ec2AMIid,
+	}
+	_, err := ec2Client.DeregisterImage(params)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+	fmt.Println("Success!!")
 }
 
 func ListAMI(ec2Client *ec2.EC2, images []*string) {
@@ -114,7 +125,7 @@ func ListAMI(ec2Client *ec2.EC2, images []*string) {
 			*resInfo.Name,
 			*resInfo.ImageId,
 			*resInfo.OwnerId,
-			//*resInfo.Public,
+			strconv.FormatBool(*resInfo.Public),
 			*resInfo.State,
 			*resInfo.CreationDate,
 		}

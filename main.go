@@ -19,6 +19,7 @@ var (
 	argInstances  = flag.String("instances", "", " slect Instance ID or Instance Tag:Name or RDSinstanceName ")
 	argELBName    = flag.String("elbname", "", "input elbname")
 	argAmiName    = flag.String("aminame", "", "input ami name")
+	argAmiId      = flag.String("amiid", "", "input ami id")
 	argAMI        = flag.Bool("ami", false, "create ami")
 	argAMIList    = flag.Bool("amilist", false, "list ami")
 	argStop       = flag.Bool("stop", false, "Instance stop")
@@ -48,7 +49,11 @@ func main() {
 		if *argAMIList {
 			clitoolgoaws.ListAMI(ec2Client, nil)
 			exeFlag = false
+		} else if *argDeregister {
+			clitoolgoaws.DeregisterAMI(ec2Client, argAmiId)
+			exeFlag = false
 		}
+
 		if *argInstances != "" {
 			ec2Instances = clitoolgoaws.GetEC2InstanceIds(ec2Client, *argInstances)
 			if *argStart {
@@ -59,7 +64,7 @@ func main() {
 				clitoolgoaws.ControlEC2Instances(ec2Client, ec2Instances, "terminate")
 			} else if *argAMI {
 				ec2InstancesAMI = clitoolgoaws.GetEC2InstanceIdsAMI(ec2Client, *argInstances)
-				clitoolgoaws.CreateAMI(ec2Client, argAmiName, ec2InstancesAMI)
+				clitoolgoaws.RegisterAMI(ec2Client, argAmiName, ec2InstancesAMI)
 			} else {
 				fmt.Println("`-start` or `-stop` or `-terminate` or `-ami` slect option")
 				os.Exit(1)
