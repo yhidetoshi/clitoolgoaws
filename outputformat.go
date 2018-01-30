@@ -26,6 +26,8 @@ func OutputFormat(data [][]string, resourceType string) {
 		table.SetHeader([]string{"BILLING_(USD)"})
 	case KINESIS:
 		table.SetHeader([]string{"Stream_Name"})
+	case S3:
+		table.SetHeader([]string{"Bucket_Name"})
 	case IAMUSER:
 		table.SetHeader([]string{"username"})
 	case IAMGROUP:
