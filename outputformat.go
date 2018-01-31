@@ -28,6 +28,10 @@ func OutputFormat(data [][]string, resourceType string) {
 		table.SetHeader([]string{"Stream_Name"})
 	case S3:
 		table.SetHeader([]string{"Bucket_Name"})
+	case S3OBJECT:
+		table.SetHeader([]string{"Object_Name", "SIZE(BYTE)", "StorageClass"})
+	case S3BUCKETSIZE:
+		table.SetHeader([]string{"Total_Size(Byte)"})
 	case IAMUSER:
 		table.SetHeader([]string{"username"})
 	case IAMGROUP:
