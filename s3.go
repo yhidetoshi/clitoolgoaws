@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	S3           = "s3"
+	S3BUCKETLIST = "s3bucketlist"
 	S3OBJECT     = "s3object"
 	S3BUCKETSIZE = "s3bucketsize"
 )
@@ -32,26 +32,35 @@ func AwsS3Client(profile string, region string) *s3.S3 {
 }
 
 // バケットリスト取得
-func ListS3Buckets(S3Client *s3.S3, bucketlist *string) {
+func ListS3Buckets(S3Client *s3.S3) []string {
 	params := &s3.ListBucketsInput{}
 	res, err := S3Client.ListBuckets(params)
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
-	//fmt.Println(res)
-	allBuckets := [][]string{}
+	var bucket []string
 	for _, resInfo := range res.Buckets {
-		bucket := []string{
-			*resInfo.Name,
-		}
-		allBuckets = append(allBuckets, bucket)
+		bucket = append(bucket, *resInfo.Name)
 	}
-	OutputFormat(allBuckets, S3)
+	return bucket
 }
 
-// オブジェクトリスト取得
-func ListObjects(S3Client *s3.S3, bucketname *string, operation string) {
+// mainからの呼び出し、結果を出力
+func ShowBuckets(S3Client *s3.S3) {
+	_bucketlist := ListS3Buckets(S3Client)
+	allBuckets := [][]string{}
+	for i := 0; i < len(_bucketlist); i++ {
+		bucketlist := []string{
+			_bucketlist[i],
+		}
+		allBuckets = append(allBuckets, bucketlist)
+	}
+	OutputFormat(allBuckets, S3BUCKETLIST)
+}
+
+// bucketを指定してオブジェクトリストを出力
+func ShowObjects(S3Client *s3.S3, bucketname *string) {
 	params := &s3.ListObjectsInput{
 		//Bucket:  aws.String(bucketname),
 		Bucket:  bucketname,
@@ -62,11 +71,8 @@ func ListObjects(S3Client *s3.S3, bucketname *string, operation string) {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
-	//fmt.Println(res)
 	allObjects := [][]string{}
-	var sumObjectSize int64
 	for _, resInfo := range res.Contents {
-		sumObjectSize += *resInfo.Size
 		object := []string{
 			*resInfo.Key,
 			strconv.FormatInt(*resInfo.Size, 10),
@@ -76,10 +82,25 @@ func ListObjects(S3Client *s3.S3, bucketname *string, operation string) {
 	}
 	OutputFormat(allObjects, S3OBJECT)
 	// 合計 KiB
-	fmt.Println(sumObjectSize)
 }
 
-func CalcBucketSize(S3Client *s3.S3, bucketname *string) {
+// mainからの呼び出し、結果を出力
+func ShowBucketSize(S3Client *s3.S3, bucketname *string) {
+	totalSize := [][]string{}
+
+	_size := CalcBucketSize(S3Client, bucketname)
+
+	size := strconv.FormatInt(_size, 10)
+	result := []string{
+		size,
+	}
+	totalSize = append(totalSize, result)
+	OutputFormat(totalSize, S3BUCKETSIZE)
+}
+
+// Bucketサイズを計算する
+func CalcBucketSize(S3Client *s3.S3, bucketname *string) int64 {
+	var sumObjectSize int64
 	params := &s3.ListObjectsInput{
 		Bucket:  bucketname,
 		MaxKeys: aws.Int64(100),
@@ -89,17 +110,23 @@ func CalcBucketSize(S3Client *s3.S3, bucketname *string) {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
-	totalSize := [][]string{}
-	var sumObjectSize int64
 
 	for _, resInfo := range res.Contents {
 		sumObjectSize += *resInfo.Size
 	}
-	size := strconv.FormatInt(sumObjectSize, 10)
-	result := []string{
-		size,
-	}
-	totalSize = append(totalSize, result)
 
-	OutputFormat(totalSize, S3BUCKETSIZE)
+	return sumObjectSize
+}
+
+// mainからの呼び出し、結果を出力
+func TotalGetBucketSize(S3Client *s3.S3) {
+
+	var sum int64
+	var buffBucket *string
+	allBuckets := ListS3Buckets(S3Client)
+	for i := 0; i < len(allBuckets); i++ {
+		buffBucket = &allBuckets[i]
+		sum += CalcBucketSize(S3Client, buffBucket)
+	}
+	fmt.Println(sum)
 }
