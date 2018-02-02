@@ -46,6 +46,25 @@ func ListS3Buckets(S3Client *s3.S3) []string {
 	return bucket
 }
 
+// 追加中 ===================
+// APIconfigで指定している同一リージョンかどうか判定
+/*
+func CheckRegion(S3CustomClient *s3.S3) {
+	bucketlist := ListS3Buckets(S3CustomClient)
+	ctx := context.Background()
+	for i := 0; i < len(bucketlist); i++ {
+		region, err := s3manager.GetBucketRegion(ctx, S3CustomClient, bucketlist[i], "ap-northeast-1")
+		if err != nil {
+			if aerr, ok := err.(awserr.Error); ok && aerr.Code() == "NotFound" {
+				fmt.Fprintf(os.Stderr, "unable to find bucket %s's region not found\n", bucketlist[i])
+			}
+		}
+		fmt.Printf("Bucket %s is in %s region\n", bucketlist[i])
+
+	}
+}
+*/
+
 // mainからの呼び出し、結果を出力
 func ShowBuckets(S3Client *s3.S3) {
 	_bucketlist := ListS3Buckets(S3Client)
@@ -84,7 +103,6 @@ func ShowObjects(S3Client *s3.S3, bucketname *string) {
 	// 合計 KiB
 }
 
-// mainからの呼び出し、結果を出力
 func ShowBucketSize(S3Client *s3.S3, bucketname *string) {
 	totalSize := [][]string{}
 
@@ -114,19 +132,23 @@ func CalcBucketSize(S3Client *s3.S3, bucketname *string) int64 {
 	for _, resInfo := range res.Contents {
 		sumObjectSize += *resInfo.Size
 	}
-
 	return sumObjectSize
 }
 
-// mainからの呼び出し、結果を出力
 func TotalGetBucketSize(S3Client *s3.S3) {
 
-	var sum int64
+	var _size int64
 	var buffBucket *string
+	totalSize := [][]string{}
 	allBuckets := ListS3Buckets(S3Client)
 	for i := 0; i < len(allBuckets); i++ {
 		buffBucket = &allBuckets[i]
-		sum += CalcBucketSize(S3Client, buffBucket)
+		_size += CalcBucketSize(S3Client, buffBucket)
 	}
-	fmt.Println(sum)
+	size := strconv.FormatInt(_size, 10)
+	_totalSize := []string{
+		size,
+	}
+	totalSize = append(totalSize, _totalSize)
+	OutputFormat(totalSize, S3BUCKETSIZE)
 }
