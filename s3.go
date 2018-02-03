@@ -31,6 +31,34 @@ func AwsS3Client(profile string, region string) *s3.S3 {
 	return S3Client
 }
 
+/*
+作成中 GetBucketPolicyでACL情報を取得する
+ -> Publicのバケットであるかを判定しバケット名を返す
+*/
+func GetS3BucketAcl(S3Client *s3.S3, bucketname *string) {
+	params := &s3.GetBucketAclInput{
+		Bucket: bucketname,
+	}
+	res, err := S3Client.GetBucketAcl(params)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+	// バケットがpublicであるかの判定用
+	judgePublic := false
+	for _, resInfo := range res.Grants {
+		if resInfo.Grantee.URI == nil {
+			resInfo.Grantee.URI = aws.String("NULL")
+		} else {
+			fmt.Println(*resInfo.Grantee.URI)
+			judgePublic = true
+		}
+	}
+	if judgePublic {
+		fmt.Println(*bucketname)
+	}
+}
+
 // バケットリスト取得
 func ListS3Buckets(S3Client *s3.S3) []string {
 	params := &s3.ListBucketsInput{}
