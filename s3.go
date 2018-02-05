@@ -91,6 +91,29 @@ func DeleteBucket(S3Client *s3.S3, bucketname *string) {
 	fmt.Println("Success!!")
 }
 
+func DeleteObject(S3Client *s3.S3, bucketname *string, objectname *string) {
+	params := &s3.DeleteObjectInput{
+		Bucket: bucketname,
+		Key:    objectname,
+	}
+	_, err := S3Client.DeleteObject(params)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+	fmt.Println("Success!!")
+}
+
+/*
+func DeleteAllObjects(S3Client, bucketname *string){
+
+	params := &s3.DeleteBucketInput{
+		Bucket: bucketname,
+		Key:
+	}
+}
+*/
+
 // 追加中 ===================
 // APIconfigで指定している同一リージョンかどうか判定
 /*
