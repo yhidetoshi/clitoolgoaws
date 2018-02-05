@@ -78,6 +78,19 @@ func ListS3Buckets(S3Client *s3.S3) []string {
 	return bucket
 }
 
+// バケット削除 (empty is ok)
+func DeleteBucket(S3Client *s3.S3, bucketname *string) {
+	params := &s3.DeleteBucketInput{
+		Bucket: bucketname,
+	}
+	_, err := S3Client.DeleteBucket(params)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+	fmt.Println("Success!!")
+}
+
 // 追加中 ===================
 // APIconfigで指定している同一リージョンかどうか判定
 /*
