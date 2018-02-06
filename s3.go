@@ -17,6 +17,7 @@ const (
 	S3BUCKETSIZE   = "s3bucketsize"
 	S3BUCKETSTATUS = "s3bucketstatus"
 	LIMIT          = 100
+	LOCATION       = "ap-northeast-1"
 )
 
 func AwsS3Client(profile string, region string) *s3.S3 {
@@ -33,10 +34,6 @@ func AwsS3Client(profile string, region string) *s3.S3 {
 	return S3Client
 }
 
-/*
-作成中 GetBucketPolicyでACL情報を取得する
- -> Publicのバケットであるかを判定しバケット名を返す
-*/
 func JudgeS3PublicBucket(S3Client *s3.S3, bucketname *string) *string {
 	params := &s3.GetBucketAclInput{
 		Bucket: bucketname,
@@ -71,11 +68,32 @@ func ListS3Buckets(S3Client *s3.S3) []string {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
+
 	var bucket []string
 	for _, resInfo := range res.Buckets {
-		bucket = append(bucket, *resInfo.Name)
+		// region情報を取得して、ap-northeast-1だけ絞る
+		location := GetS3BucketLocation(S3Client, resInfo.Name)
+		if location == LOCATION {
+			bucket = append(bucket, *resInfo.Name)
+		}
 	}
 	return bucket
+}
+
+//  バケットのロケーション取得
+func GetS3BucketLocation(S3Client *s3.S3, bucketname *string) string {
+	params := &s3.GetBucketLocationInput{
+		Bucket: bucketname,
+	}
+	location, err := S3Client.GetBucketLocation(params)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+	var region string
+	region = *location.LocationConstraint
+
+	return region
 }
 
 // バケット削除 (empty is ok)
@@ -114,6 +132,7 @@ func ShowBuckets(S3Client *s3.S3) {
 			_bucketlist[i],
 		}
 		allBuckets = append(allBuckets, bucketlist)
+
 	}
 	OutputFormat(allBuckets, S3BUCKETLIST)
 }
@@ -137,13 +156,11 @@ func ShowObjects(S3Client *s3.S3, bucketname *string) {
 	allObjects := [][]string{}
 
 	params := &s3.ListObjectsInput{
-		//Bucket:  aws.String(bucketname),
 		Bucket:  bucketname,
 		MaxKeys: aws.Int64(LIMIT),
 	}
 
 	S3Client.ListObjectsPages(params, func(page *s3.ListObjectsOutput, lastPage bool) bool {
-		//fmt.Println("Page", pageNum)
 		pageNum++
 
 		for _, resInfo := range page.Contents {
@@ -161,7 +178,6 @@ func ShowObjects(S3Client *s3.S3, bucketname *string) {
 	// 合計 KiB
 }
 
-// 作成中 (バケット削除に必要な機能)
 func GetS3Objects(S3Client *s3.S3, bucketname *string) []string {
 	params := &s3.ListObjectsInput{
 		//Bucket:  aws.String(bucketname),
@@ -180,7 +196,6 @@ func GetS3Objects(S3Client *s3.S3, bucketname *string) []string {
 		return true
 
 	})
-	//fmt.Println(objects)
 	return objects
 }
 
@@ -252,22 +267,3 @@ func TotalGetBucketSize(S3Client *s3.S3) {
 	totalSize = append(totalSize, _totalSize)
 	OutputFormat(totalSize, S3BUCKETSIZE)
 }
-
-// 追加中 ===================
-// APIconfigで指定している同一リージョンかどうか判定
-/*
-func CheckRegion(S3CustomClient *s3.S3) {
-	bucketlist := ListS3Buckets(S3CustomClient)
-	ctx := context.Background()
-	for i := 0; i < len(bucketlist); i++ {
-		region, err := s3manager.GetBucketRegion(ctx, S3CustomClient, bucketlist[i], "ap-northeast-1")
-		if err != nil {
-			if aerr, ok := err.(awserr.Error); ok && aerr.Code() == "NotFound" {
-				fmt.Fprintf(os.Stderr, "unable to find bucket %s's region not found\n", bucketlist[i])
-			}
-		}
-		fmt.Printf("Bucket %s is in %s region\n", bucketlist[i])
-
-	}
-}
-*/
