@@ -16,7 +16,7 @@ const (
 	S3OBJECT       = "s3object"
 	S3BUCKETSIZE   = "s3bucketsize"
 	S3BUCKETSTATUS = "s3bucketstatus"
-	LIMIT          = 100000
+	LIMIT          = 100
 )
 
 func AwsS3Client(profile string, region string) *s3.S3 {
@@ -132,26 +132,31 @@ func DeleteAllObjects(S3Client *s3.S3, bucketname *string) {
 
 // bucketを指定してオブジェクトリストと関連する情報を表示
 func ShowObjects(S3Client *s3.S3, bucketname *string) {
+	pageNum := 0
+	var objects []string
+	allObjects := [][]string{}
+
 	params := &s3.ListObjectsInput{
 		//Bucket:  aws.String(bucketname),
 		Bucket:  bucketname,
 		MaxKeys: aws.Int64(LIMIT),
 	}
-	res, err := S3Client.ListObjects(params)
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
 
-	allObjects := [][]string{}
-	for _, resInfo := range res.Contents {
-		object := []string{
-			*resInfo.Key,
-			strconv.FormatInt(*resInfo.Size, 10),
-			*resInfo.StorageClass,
+	S3Client.ListObjectsPages(params, func(page *s3.ListObjectsOutput, lastPage bool) bool {
+		//fmt.Println("Page", pageNum)
+		pageNum++
+
+		for _, resInfo := range page.Contents {
+			objects = []string{
+				*resInfo.Key,
+				strconv.FormatInt(*resInfo.Size, 10),
+				*resInfo.StorageClass,
+			}
+
+			allObjects = append(allObjects, objects)
 		}
-		allObjects = append(allObjects, object)
-	}
+		return true
+	})
 	OutputFormat(allObjects, S3OBJECT)
 	// 合計 KiB
 }
@@ -163,15 +168,19 @@ func GetS3Objects(S3Client *s3.S3, bucketname *string) []string {
 		Bucket:  bucketname,
 		MaxKeys: aws.Int64(LIMIT),
 	}
-	res, err := S3Client.ListObjects(params)
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
+	pageNum := 0
 	var objects []string
-	for _, resInfo := range res.Contents {
-		objects = append(objects, *resInfo.Key)
-	}
+
+	S3Client.ListObjectsPages(params, func(page *s3.ListObjectsOutput, lastPage bool) bool {
+		pageNum++
+
+		for _, resInfo := range page.Contents {
+			objects = append(objects, *resInfo.Key)
+		}
+		return true
+
+	})
+	//fmt.Println(objects)
 	return objects
 }
 
@@ -191,17 +200,19 @@ func CalcBucketSize(S3Client *s3.S3, bucketname *string) int64 {
 	var sumObjectSize int64
 	params := &s3.ListObjectsInput{
 		Bucket:  bucketname,
-		MaxKeys: aws.Int64(100000),
-	}
-	res, err := S3Client.ListObjects(params)
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
+		MaxKeys: aws.Int64(LIMIT),
 	}
 
-	for _, resInfo := range res.Contents {
-		sumObjectSize += *resInfo.Size
-	}
+	pageNum := 0
+
+	S3Client.ListObjectsPages(params, func(page *s3.ListObjectsOutput, lastPage bool) bool {
+		pageNum++
+
+		for _, resInfo := range page.Contents {
+			sumObjectSize += *resInfo.Size
+		}
+		return true
+	})
 	return sumObjectSize
 }
 
