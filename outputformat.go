@@ -29,15 +29,17 @@ func OutputFormat(data [][]string, resourceType string) {
 	case S3BUCKETLIST:
 		table.SetHeader([]string{"Bucket_Name"})
 	case S3OBJECT:
-		table.SetHeader([]string{"Object_Name", "SIZE(BYTE)", "StorageClass"})
+		table.SetHeader([]string{"Object_Name", "SIZE(KiB)", "StorageClass"})
 	case S3BUCKETSIZE:
-		table.SetHeader([]string{"Total_Size(Byte)"})
+		table.SetHeader([]string{"Total_SIZE(KiB)"})
 	case S3BUCKETSTATUS:
 		table.SetHeader([]string{"Bucket", "Status"})
 	case IAMUSER:
 		table.SetHeader([]string{"username"})
 	case IAMGROUP:
 		table.SetHeader([]string{"groupname"})
+	case EIP:
+		table.SetHeader([]string{"publicip", "AllocationId", "InstanceId", "PrivateIpAddress", "Domain", "NetworkInterfaceId", "NetworkInterfaceOwnerId"})
 	}
 
 	for _, value := range data {

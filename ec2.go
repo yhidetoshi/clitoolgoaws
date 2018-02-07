@@ -15,6 +15,7 @@ import (
 const (
 	EC2 = "ec2"
 	AMI = "ami"
+	EIP = "eip"
 )
 
 // EC2リソース接続用
@@ -33,46 +34,44 @@ func AwsEC2Client(profile string, region string) *ec2.EC2 {
 	return ec2Client
 }
 
-func StopEC2Instances(ec2Client *ec2.EC2, ec2Instances []*string) {
-	params := &ec2.StopInstancesInput{
-		InstanceIds: ec2Instances,
-	}
-	res, err := ec2Client.StopInstances(params)
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
-	for _, r := range res.StoppingInstances {
-		fmt.Printf("%s stopped", *r.InstanceId)
-	}
-}
+// Memo commitする。
+// -eipcheck --> EIPが関連付けされていないEIPを返す
+// eip生成 / 削除 / アタッチの機能をつくる？
 
-func StartEC2Instances(ec2Client *ec2.EC2, ec2Instances []*string) {
-	params := &ec2.StartInstancesInput{
-		InstanceIds: ec2Instances,
-	}
-	res, err := ec2Client.StartInstances(params)
+func ShowElasticIP(ec2Client *ec2.EC2) {
+	params := &ec2.DescribeAddressesInput{}
+	res, err := ec2Client.DescribeAddresses(params)
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
-	for _, r := range res.StartingInstances {
-		fmt.Printf("%s started", *r.InstanceId)
+	alleiplist := [][]string{}
+	for _, resInfo := range res.Addresses {
+		// ValueがNULLだった場合の例外処理
+		if resInfo.InstanceId == nil {
+			resInfo.InstanceId = aws.String("NULL")
+		}
+		if resInfo.PrivateIpAddress == nil {
+			resInfo.PrivateIpAddress = aws.String("NULL")
+		}
+		if resInfo.NetworkInterfaceId == nil {
+			resInfo.NetworkInterfaceId = aws.String("NULL")
+		}
+		if resInfo.NetworkInterfaceOwnerId == nil {
+			resInfo.NetworkInterfaceOwnerId = aws.String("NULL")
+		}
+		eiplist := []string{
+			*resInfo.PublicIp,
+			*resInfo.AllocationId,
+			*resInfo.InstanceId,
+			*resInfo.PrivateIpAddress,
+			*resInfo.Domain,
+			*resInfo.NetworkInterfaceId,
+			*resInfo.NetworkInterfaceOwnerId,
+		}
+		alleiplist = append(alleiplist, eiplist)
 	}
-}
-
-func TerminateEC2Instances(ec2Client *ec2.EC2, ec2Instances []*string) {
-	params := &ec2.TerminateInstancesInput{
-		InstanceIds: ec2Instances,
-	}
-	res, err := ec2Client.TerminateInstances(params)
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
-	for _, r := range res.TerminatingInstances {
-		fmt.Printf("%s terminated", *r.InstanceId)
-	}
+	OutputFormat(alleiplist, EIP)
 }
 
 func RegisterAMI(ec2Client *ec2.EC2, ec2AMIName *string, ec2Instances *string) {
@@ -131,7 +130,49 @@ func ListAMI(ec2Client *ec2.EC2, images []*string) {
 		}
 		allAmiInfo = append(allAmiInfo, amiInfo)
 	}
-	OutputFormat(allAmiInfo, AMI)
+	OutputFormat(allAmiInfo, EIP)
+}
+
+func StopEC2Instances(ec2Client *ec2.EC2, ec2Instances []*string) {
+	params := &ec2.StopInstancesInput{
+		InstanceIds: ec2Instances,
+	}
+	res, err := ec2Client.StopInstances(params)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+	for _, r := range res.StoppingInstances {
+		fmt.Printf("%s stopped", *r.InstanceId)
+	}
+}
+
+func StartEC2Instances(ec2Client *ec2.EC2, ec2Instances []*string) {
+	params := &ec2.StartInstancesInput{
+		InstanceIds: ec2Instances,
+	}
+	res, err := ec2Client.StartInstances(params)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+	for _, r := range res.StartingInstances {
+		fmt.Printf("%s started", *r.InstanceId)
+	}
+}
+
+func TerminateEC2Instances(ec2Client *ec2.EC2, ec2Instances []*string) {
+	params := &ec2.TerminateInstancesInput{
+		InstanceIds: ec2Instances,
+	}
+	res, err := ec2Client.TerminateInstances(params)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+	for _, r := range res.TerminatingInstances {
+		fmt.Printf("%s terminated", *r.InstanceId)
+	}
 }
 
 func ListEC2Instances(ec2Client *ec2.EC2, ec2Instances []*string) {
@@ -153,17 +194,14 @@ func ListEC2Instances(ec2Client *ec2.EC2, ec2Instances []*string) {
 					tagName = *tagInfo.Value
 				}
 			}
-
 			// PublicIpAddressがNULLの場合の例外処理
 			if instanceInfo.PublicIpAddress == nil {
 				instanceInfo.PublicIpAddress = aws.String("NULL")
 			}
-
 			// PrivateIpAddressがNULLの場合の例外処理
 			if instanceInfo.PrivateIpAddress == nil {
 				instanceInfo.PrivateIpAddress = aws.String("NULL")
 			}
-
 			instance := []string{
 				tagName,
 				*instanceInfo.InstanceId,
