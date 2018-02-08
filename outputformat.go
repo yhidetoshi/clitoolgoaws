@@ -40,6 +40,8 @@ func OutputFormat(data [][]string, resourceType string) {
 		table.SetHeader([]string{"groupname"})
 	case EIP:
 		table.SetHeader([]string{"publicip", "AllocationId", "InstanceId", "PrivateIpAddress", "Domain", "NetworkInterfaceId", "NetworkInterfaceOwnerId"})
+	case SG:
+		table.SetHeader([]string{"GroupName", "GroupId", "VpcId"})
 	}
 
 	for _, value := range data {

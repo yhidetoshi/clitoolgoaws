@@ -16,6 +16,7 @@ const (
 	EC2 = "ec2"
 	AMI = "ami"
 	EIP = "eip"
+	SG  = "sg"
 )
 
 // EC2リソース接続用
@@ -33,10 +34,6 @@ func AwsEC2Client(profile string, region string) *ec2.EC2 {
 
 	return ec2Client
 }
-
-// Memo commitする。
-// -eipcheck --> EIPが関連付けされていないEIPを返す
-// eip生成 / 削除 / アタッチの機能をつくる？
 
 func ShowElasticIP(ec2Client *ec2.EC2) {
 	params := &ec2.DescribeAddressesInput{}
@@ -72,6 +69,50 @@ func ShowElasticIP(ec2Client *ec2.EC2) {
 		alleiplist = append(alleiplist, eiplist)
 	}
 	OutputFormat(alleiplist, EIP)
+}
+
+func DeleteElasticIP(ec2Client *ec2.EC2, allocationid *string) {
+	params := &ec2.ReleaseAddressInput{
+		AllocationId: allocationid,
+	}
+	_, err := ec2Client.ReleaseAddress(params)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+	fmt.Println("Released!!")
+}
+
+func ListSecurityGroup(ec2Client *ec2.EC2) {
+	params := &ec2.DescribeSecurityGroupsInput{}
+	res, err := ec2Client.DescribeSecurityGroups(params)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+	allsglist := [][]string{}
+	for _, resInfo := range res.SecurityGroups {
+		sglist := []string{
+			*resInfo.GroupName,
+			*resInfo.GroupId,
+			*resInfo.VpcId,
+		}
+		allsglist = append(allsglist, sglist)
+	}
+	OutputFormat(allsglist, SG)
+}
+
+func ShowSecurityGroup(ec2Client *ec2.EC2, sgid []*string) {
+	params := &ec2.DescribeSecurityGroupsInput{
+		GroupIds: sgid,
+	}
+	res, err := ec2Client.DescribeSecurityGroups(params)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+	fmt.Println(res)
+
 }
 
 func RegisterAMI(ec2Client *ec2.EC2, ec2AMIName *string, ec2Instances *string) {
