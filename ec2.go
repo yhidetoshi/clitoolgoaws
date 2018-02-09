@@ -217,6 +217,9 @@ func TerminateEC2Instances(ec2Client *ec2.EC2, ec2Instances []*string) {
 }
 
 func ListEC2Instances(ec2Client *ec2.EC2, ec2Instances []*string) {
+	var tagName, sgName, sgId string
+	//	var sgName string
+
 	params := &ec2.DescribeInstancesInput{
 		InstanceIds: ec2Instances,
 	}
@@ -229,11 +232,14 @@ func ListEC2Instances(ec2Client *ec2.EC2, ec2Instances []*string) {
 
 	for _, resInfo := range res.Reservations {
 		for _, instanceInfo := range resInfo.Instances {
-			var tagName string
 			for _, tagInfo := range instanceInfo.Tags {
 				if *tagInfo.Key == "Name" {
 					tagName = *tagInfo.Value
 				}
+			}
+			for _, sgInfo := range instanceInfo.SecurityGroups {
+				sgName = *sgInfo.GroupName
+				sgId = *sgInfo.GroupId
 			}
 			// PublicIpAddressがNULLの場合の例外処理
 			if instanceInfo.PublicIpAddress == nil {
@@ -253,6 +259,8 @@ func ListEC2Instances(ec2Client *ec2.EC2, ec2Instances []*string) {
 				*instanceInfo.State.Name,
 				*instanceInfo.VpcId,
 				*instanceInfo.SubnetId,
+				sgName,
+				sgId,
 				*instanceInfo.RootDeviceType,
 				*instanceInfo.KeyName,
 			}
