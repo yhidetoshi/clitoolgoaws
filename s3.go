@@ -171,7 +171,14 @@ func GetS3BucketLocation(S3Client *s3.S3, bucketname *string) string {
 		os.Exit(1)
 	}
 	var region string
-	region = *location.LocationConstraint
+
+	// us-east-1(バージニア北部)の対処
+	if location.LocationConstraint == nil {
+		region = "NULL"
+	} else {
+		region = *location.LocationConstraint
+	}
+	//region = *location.LocationConstraint
 
 	return region
 }
