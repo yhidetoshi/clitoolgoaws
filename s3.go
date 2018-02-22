@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"sync"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -18,6 +19,7 @@ const (
 	S3BUCKETSTATUS = "s3bucketstatus"
 	LIMIT          = 100
 	LOCATION       = "ap-northeast-1"
+	CHUNKSIZE      = 2
 )
 
 // client
@@ -235,7 +237,6 @@ func GetS3Objects(S3Client *s3.S3, bucketname *string) []string {
 	return objects
 }
 
-// 指定したBucketのサイズを返す
 func CalcBucketSize(S3Client *s3.S3, bucketname *string) int64 {
 	var sumObjectSize int64
 	params := &s3.ListObjectsInput{
@@ -244,7 +245,6 @@ func CalcBucketSize(S3Client *s3.S3, bucketname *string) int64 {
 	}
 
 	pageNum := 0
-
 	S3Client.ListObjectsPages(params, func(page *s3.ListObjectsOutput, lastPage bool) bool {
 		pageNum++
 
@@ -256,8 +256,49 @@ func CalcBucketSize(S3Client *s3.S3, bucketname *string) int64 {
 	return sumObjectSize
 }
 
+// 指定したBucketのサイズを返す(通常)
+// この関数を並列処理する。バケットの配列を受けれるよおうに修正 goroutine用に 新規で作る
+func CalcThreadBucketSize(S3Client *s3.S3, bucketname *string, ch chan int64, wg *sync.WaitGroup) {
+	//var buffBucket *string
+	var sumObjectSize int64
+
+	params := &s3.ListObjectsInput{
+		Bucket:  bucketname,
+		MaxKeys: aws.Int64(LIMIT),
+	}
+
+	pageNum := 0
+	S3Client.ListObjectsPages(params, func(page *s3.ListObjectsOutput, lastPage bool) bool {
+		pageNum++
+
+		for _, resInfo := range page.Contents {
+			sumObjectSize += *resInfo.Size
+		}
+		return true
+	})
+	ch <- sumObjectSize
+	wg.Done()
+	wg.Wait()
+}
+
+/*
+func Reciver(S3Client *s3.S3, s []string, ch chan int64, wg *sync.WaitGroup) {
+	//var buffBucket *string
+	//var sum int64
+
+	for i := 0; i < len(s); i++ {
+		buffBucket = &s[i]
+		// マルチスレッドで呼び出すが先で合計処理しているのはシングルスレッドだから遅い？
+		sum += CalcBucketSize(S3Client, buffBucket)
+	}
+	//ch <- sum
+	//wg.Done()
+	//wg.Wait()
+}
+*/
+
 // リージョン内の全バケット合計値を表示
-func TotalGetBucketSize(S3Client *s3.S3) {
+func TotalGetBucketSizeSingle(S3Client *s3.S3) {
 
 	var _size int64
 	var buffBucket *string
@@ -269,6 +310,76 @@ func TotalGetBucketSize(S3Client *s3.S3) {
 		_size += CalcBucketSize(S3Client, buffBucket)
 	}
 	size := strconv.FormatInt(_size, 10)
+	_totalSize := []string{
+		size,
+	}
+	totalSize = append(totalSize, _totalSize)
+	OutputFormat(totalSize, S3BUCKETSIZE)
+}
+
+// リージョン内の全バケット合計値を表示
+func TotalGetBucketSize(S3Client *s3.S3) {
+
+	// ------- 並列処理実装中 ------------------ //
+	/*
+		var chunkNum int // threadの数になる
+		var chunkMod int // CHUNKSIZEでの余り
+	*/
+	var result int64
+
+	//var _size int64
+	var buffBucket *string
+	totalSize := [][]string{}
+	allBuckets := ListS3Buckets(S3Client)
+
+	// -- 並列処理実装中 -- //
+	wg := new(sync.WaitGroup)
+	ch := make(chan int64, len(allBuckets))
+	/*
+		chunkNum = len(allBuckets) / CHUNKSIZE
+		chunkMod = len(allBuckets) % CHUNKSIZE
+
+		if chunkMod == 0 {
+			chunkNum = chunkNum
+		} else {
+			chunkNum = chunkNum + 1
+		}
+		wg.Add(chunkNum)
+		for i := CHUNKSIZE; len(allBuckets) > 0; {
+			if len(allBuckets) < CHUNKSIZE {
+				i = len(allBuckets)
+			}
+
+			target := allBuckets[:i]
+			allBuckets = allBuckets[i:]
+			fmt.Println(target)
+			go Reciver(S3Client, target, ch, wg)
+		}
+	*/
+	wg.Add(len(allBuckets))
+	for i := 0; i < len(allBuckets); i++ {
+		buffBucket = &allBuckets[i]
+		go CalcThreadBucketSize(S3Client, buffBucket, ch, wg)
+	}
+
+	// 合計を受け取りし合算
+	for j := 0; j < len(allBuckets); j++ {
+		result += <-ch
+	}
+	//time.Sleep(1 * time.Second)
+	close(ch)
+	// ------------------------------------------- //
+
+	// ---  並列処理で置き換える箇所 -----//
+	/*
+		for i := 0; i < len(allBuckets); i++ {
+			buffBucket = &allBuckets[i]
+			_size += CalcBucketSize(S3Client, buffBucket)
+		}
+	*/
+	// ----------------------------- //
+
+	size := strconv.FormatInt(result, 10)
 	_totalSize := []string{
 		size,
 	}
