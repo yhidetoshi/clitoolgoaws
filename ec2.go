@@ -238,8 +238,16 @@ func ListEC2Instances(ec2Client *ec2.EC2, ec2Instances []*string) {
 				}
 			}
 			for _, sgInfo := range instanceInfo.SecurityGroups {
-				sgName = *sgInfo.GroupName
-				sgId = *sgInfo.GroupId
+				if sgInfo.GroupName == nil {
+					sgName = "NULL"
+				} else {
+					sgName = *sgInfo.GroupName
+				}
+				if sgInfo.GroupId == nil {
+					sgId = "NULL"
+				} else {
+					sgId = *sgInfo.GroupId
+				}
 			}
 			// PublicIpAddressがNULLの場合の例外処理
 			if instanceInfo.PublicIpAddress == nil {
@@ -249,6 +257,13 @@ func ListEC2Instances(ec2Client *ec2.EC2, ec2Instances []*string) {
 			if instanceInfo.PrivateIpAddress == nil {
 				instanceInfo.PrivateIpAddress = aws.String("NULL")
 			}
+			if instanceInfo.VpcId == nil {
+				instanceInfo.VpcId = aws.String("NULL")
+			}
+			if instanceInfo.SubnetId == nil {
+				instanceInfo.SubnetId = aws.String("NULL")
+			}
+
 			instance := []string{
 				tagName,
 				*instanceInfo.InstanceId,
