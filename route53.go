@@ -3,6 +3,7 @@ package clitoolgoaws
 import (
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -42,6 +43,8 @@ func ShowHostedZone(route53Client *route53.Route53) {
 		zones := []string{
 			*resInfo.Name,
 			*resInfo.Id,
+			strconv.FormatInt(*resInfo.ResourceRecordSetCount, 10),
+			strconv.FormatBool(*resInfo.Config.PrivateZone),
 		}
 		allHostZones = append(allHostZones, zones)
 	}
