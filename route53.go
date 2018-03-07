@@ -12,7 +12,8 @@ import (
 )
 
 const (
-	ROUTE53 = "route53"
+	ROUTE53       = "route53"
+	ROUTE53RECORD = "route53record"
 )
 
 func AwsRoute53Client(profile string, region string) *route53.Route53 {
@@ -49,4 +50,33 @@ func ShowHostedZone(route53Client *route53.Route53) {
 		allHostZones = append(allHostZones, zones)
 	}
 	OutputFormat(allHostZones, ROUTE53)
+}
+
+func ShowListResourceRecordSets(route53Client *route53.Route53, zoneId *string) {
+	params := &route53.ListResourceRecordSetsInput{
+		HostedZoneId: zoneId,
+	}
+	res, err := route53Client.ListResourceRecordSets(params)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+
+	allRecords := [][]string{}
+	var value string
+	for _, resInfo := range res.ResourceRecordSets {
+
+		for _, valuInfo := range resInfo.ResourceRecords {
+			value = *valuInfo.Value
+		}
+
+		records := []string{
+			*resInfo.Type,
+			*resInfo.Name,
+			value,
+			strconv.FormatInt(*resInfo.TTL, 10),
+		}
+		allRecords = append(allRecords, records)
+	}
+	OutputFormat(allRecords, ROUTE53RECORD)
 }
