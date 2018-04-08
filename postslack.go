@@ -1,11 +1,11 @@
 package clitoolgoaws
 
 import (
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
+    "encoding/json"
+    "io/ioutil"
 	"net/http"
-	"net/url"
+    "net/url"
+	"fmt"
 )
 
 const (
@@ -19,17 +19,17 @@ var (
 )
 
 type Slack struct {
-	Data       string `json:"text"`
-	Username   string `json:"username"`
-	Icon_emoji string `json:"icon_emoji"`
-	Icon_url   string `json:"icon_url"`
-	Channel    string `json:"channel"`
+	Data        string `json:"text"`
+	Username    string `json:"username"`
+	Icon_emoji  string `json:"icon_emoji"`
+	Icon_url    string `json:"icon_url"`
+	Channel     string `json:"channel"`
 }
 
 func PostSlack(billing float64) {
 	fmt.Println(billing)
 	params, _ := json.Marshal(Slack{
-		"AWS現在の料金: $" + fmt.Sprint(billing),
+		"AWS(bct-Prd)現在の料金: $"+fmt.Sprint(billing) ,
 		USERNAME,
 		"",
 		"http://www.techscore.com/blog/wp/wp-content/uploads/2016/12/gopher_ueda.png",

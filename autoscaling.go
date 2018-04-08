@@ -30,6 +30,52 @@ func AwsASClient(profile string, region string) *autoscaling.AutoScaling {
 	return asClient
 }
 
+// LaunchConfigを作成
+func CreateLaunchConfig(asClient *autoscaling.AutoScaling, launchConfigName *string, iamProfile *string, imageId *string, instanceType *string, keyName *string, securityGroups []*string) {
+	params := &autoscaling.CreateLaunchConfigurationInput{
+		IamInstanceProfile:      iamProfile,
+		ImageId:                 imageId,
+		InstanceType:            instanceType,
+		KeyName:                 keyName,
+		LaunchConfigurationName: launchConfigName,
+		SecurityGroups:          securityGroups,
+	}
+	_, err := asClient.CreateLaunchConfiguration(params)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+	fmt.Println("Success!!")
+}
+
+// ASGのインスタンスの状態を取得(Healthyの数を返す)
+func GetInstanceStatus(asClient *autoscaling.AutoScaling, asgname *string) {
+	_asgname := []*string{
+		asgname,
+	}
+
+	var instanceHealthyCount int64
+	params := &autoscaling.DescribeAutoScalingGroupsInput{
+		AutoScalingGroupNames: _asgname,
+	}
+	res, err := asClient.DescribeAutoScalingGroups(params)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+	for _, resInfo := range res.AutoScalingGroups {
+		for _, instanceInfo := range resInfo.Instances {
+			if *instanceInfo.HealthStatus == "Healthy" {
+				instanceHealthyCount++
+			}
+		}
+	}
+	fmt.Println(instanceHealthyCount)
+}
+
+// ASGの名前をポインタ配列で返す
+//func getAutoScalingName(asClient *autoscaling.AutoScaling)
+
 // ASGの一覧取得
 func ShowAutoScaling(asClient *autoscaling.AutoScaling) {
 	allAutoScalingInfo := [][]string{}
@@ -70,6 +116,35 @@ func ShowAutoScaling(asClient *autoscaling.AutoScaling) {
 	}
 	OutputFormat(allAutoScalingInfo, AS)
 }
+func ChangeLaunchConfig(asClient *autoscaling.AutoScaling, asgname *string, lcname *string) {
+	params := &autoscaling.UpdateAutoScalingGroupInput{
+		AutoScalingGroupName:    asgname,
+		LaunchConfigurationName: lcname,
+	}
+	_, err := asClient.UpdateAutoScalingGroup(params)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+	fmt.Println("Success!!")
+}
+
+/*
+func ChangeAllSizeInstances(asClient *autoscaling.AutoScaling, asgname *string, maxnum *int64, minnum *int64, desirenum *int64) {
+	params := &autoscaling.UpdateAutoScalingGroupInput{
+		AutoScalingGroupName: asgname,
+		DesiredCapacity:      desirenum,
+		MaxSize:              maxnum,
+		MinSize:              minnum,
+	}
+	_, err := asClient.UpdateAutoScalingGroup(params)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+	fmt.Println("Success!!!")
+}
+*/
 
 func ChangeMaxSizeInstances(asClient *autoscaling.AutoScaling, asgname *string, maxnum *int64) {
 	params := &autoscaling.UpdateAutoScalingGroupInput{
